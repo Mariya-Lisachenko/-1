@@ -68,7 +68,7 @@ def parse_other_tasks_or_files(task: str):
                     other_tasks[key] = other_tasks[key] | task_dict
     return other_tasks["cookies"], other_tasks["parameters"], other_tasks["headers"], other_tasks["form_data"], other_tasks["files"]         
 
-def main_program(task: str, i):
+def main_program(task: str):
     main_task, url = parse_main_task(task)
     cookies, parameters, headers, form_data, files = parse_other_tasks_or_files(task)
     this_url = main_url + url 
@@ -81,14 +81,13 @@ def main_program(task: str, i):
         response = req.post(this_url, data=form_data, params=parameters, headers=headers, cookies=cookies)
     print("==============================================")
     print(response.text)
-    main_program(response.text.replace("\n", ""), i)
+    main_program(response.text.replace("\n", ""))
     
 
 def authorize():
-    i = 0
     task = req.get("http://178.154.226.49", cookies={"user": "8a4eb33a46b1405bb45291a37305c49a"})
     print(task.text)
-    main_program(task.text.replace("\n", ""), i)
+    main_program(task.text.replace("\n", ""))
 
 if __name__ == "__main__":
     authorize()
