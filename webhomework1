@@ -74,19 +74,17 @@ def main_program(task: str):
     this_url = main_url + url 
 
     if main_task == "get":
-        response = req.get(this_url, params=parameters, data=form_data, headers=headers, cookies=cookies)
+        task = req.get(this_url, params=parameters, data=form_data, headers=headers, cookies=cookies)
     elif main_task == "post" and len(files) != 0:
-        response = req.post(this_url, cookies=cookies, files=files)
+        task = req.post(this_url, cookies=cookies, files=files)
     else:
-        response = req.post(this_url, data=form_data, params=parameters, headers=headers, cookies=cookies)
+        task = req.post(this_url, data=form_data, params=parameters, headers=headers, cookies=cookies)
     print("==============================================")
-    print(response.text)
-    main_program(response.text.replace("\n", ""))
+    main_program(task.text.replace("\n", ""))
     
 
 def authorize():
     task = req.get("http://178.154.226.49", cookies={"user": "8a4eb33a46b1405bb45291a37305c49a"})
-    print(task.text)
     main_program(task.text.replace("\n", ""))
 
 if __name__ == "__main__":
