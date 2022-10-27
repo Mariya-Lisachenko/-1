@@ -4,6 +4,7 @@ import re
 token = str("8a4eb33a46b1405bb45291a37305c49a")
 main_url = str("http://178.154.226.49")
 
+
 def find_text_between_html_commands(text: str, command1, command2):
     index1 = text.find(command1) + len(command1)
     index2 = text.find(command2)
@@ -22,17 +23,20 @@ def parse_main_task(task_full_text: str):
         else:
             return "post", url
 
+
 def make_other_tasks_dict(found_results):
     tasks_dict = dict[str, str]()
     for i in range(0, len(found_results), 2):
         tasks_dict[found_results[i]] = found_results[i+1]
     return tasks_dict
 
+
 def find_other_task(task: str, find_phrases: list):
     result = find_phrases[0].findall(task)
     if len(result) == 0:
         result = find_phrases[1].findall((task))
     return result
+        
         
 def find_task_data(not_parsed_other_task):
     find_form = re.compile("<td><code>(.+?)</code></td>")
@@ -68,6 +72,7 @@ def parse_other_tasks_or_files(task: str):
                     other_tasks[key] = other_tasks[key] | task_dict
     return other_tasks["cookies"], other_tasks["parameters"], other_tasks["headers"], other_tasks["form_data"], other_tasks["files"]         
 
+
 def main_program(task: str):
     main_task, url = parse_main_task(task)
     cookies, parameters, headers, form_data, files = parse_other_tasks_or_files(task)
@@ -82,7 +87,7 @@ def main_program(task: str):
     print("==============================================")
     main_program(task.text.replace("\n", ""))
     
-
+    
 def authorize():
     task = req.get("http://178.154.226.49", cookies={"user": "8a4eb33a46b1405bb45291a37305c49a"})
     main_program(task.text.replace("\n", ""))
