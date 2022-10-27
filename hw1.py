@@ -1,0 +1,96 @@
+import requests as req
+import re
+from requests.adapters import HTTPAdapter
+from urllib3.util.retry import Retry
+
+token = str("8a4eb33a46b1405bb45291a37305c49a")
+main_url = str("http://178.154.226.49")
+
+def find_text_between_html_commands(text: str, command1, command2):
+    index1 = text.find(command1) + len(command1)
+    index2 = text.find(command2)
+    return text[index1:index2]
+
+
+def parse_main_task(task_full_text: str):
+    if 'href="' in task_full_text:
+        return "get", find_text_between_html_commands(task_full_text, '<a href="', '">ссылке</a>')
+    elif "href='" in task_full_text:
+        return "get", find_text_between_html_commands(task_full_text, "<a href='", "'>ссылке</a>")
+    else:
+        url = find_text_between_html_commands(task_full_text, '<code>', '</code>')
+        if "GET" in task_full_text :
+            return "get", url
+        else:
+            return "post", url
+
+def make_other_tasks_dict(found_results):
+    tasks_dict = dict[str, str]()
+    for i in range(0, len(found_results), 2):
+        tasks_dict[found_results[i]] = found_results[i+1]
+    return tasks_dict
+
+def find_other_task(task: str, find_phrases: list):
+    result = find_phrases[0].findall(task)
+    if len(result) == 0:
+        result = find_phrases[1].findall((task))
+    return result
+        
+def find_task_data(not_parsed_other_task):
+    find_form = re.compile("<td><code>(.+?)</code></td>")
+    found_results = find_form.findall(not_parsed_other_task)
+    return found_results
+
+
+def parse_other_tasks_or_files(task: str):
+    other_tasks = {
+        "cookies" : {"user" : token},
+        "parameters" : dict[str, str](),
+        "headers" : dict[str, str](),
+        "form_data" : dict[str, str](),
+        "files" : dict[str, str]()
+        }
+    find_forms_dict = {
+    "cookies" : [re.compile("cookie.*?<br />"), re.compile("cookie.*?</body>")],
+    "parameters" : [re.compile("таблице.*?<br />"), re.compile("таблице.*?</body>")],
+    "headers" : [re.compile("заголовки.*?<br />"), re.compile("заголовки.*?</body>")],
+    "form_data" : [re.compile("формы.*?<br />"), re.compile("формы.*?</body>")],
+    }
+
+    if task.find("Имя файла") != -1:
+        results = find_task_data(task[task.find("Имя файла"):])     
+        other_tasks["files"] = make_other_tasks_dict(results)
+    else:
+        for key in other_tasks.keys():
+            if key != "files":
+                found_result = find_other_task(task, find_forms_dict[key])
+                if len(found_result) != 0:
+                    task_data = find_task_data(found_result[0])
+                    task_dict = make_other_tasks_dict(task_data)
+                    other_tasks[key] = other_tasks[key] | task_dict
+    return other_tasks["cookies"], other_tasks["parameters"], other_tasks["headers"], other_tasks["form_data"], other_tasks["files"]         
+
+def main_program(task: str, i):
+    main_task, url = parse_main_task(task)
+    cookies, parameters, headers, form_data, files = parse_other_tasks_or_files(task)
+    this_url = main_url + url 
+
+    if main_task == "get":
+        response = req.get(this_url, params=parameters, data=form_data, headers=headers, cookies=cookies)
+    elif main_task == "post" and len(files) != 0:
+        response = req.post(this_url, cookies=cookies, files=files)
+    else:
+        response = req.post(this_url, data=form_data, params=parameters, headers=headers, cookies=cookies)
+    print("==============================================")
+    print(response.text)
+    main_program(response.text.replace("\n", ""), i)
+    
+
+def authorize():
+    i = 0
+    task = req.get("http://178.154.226.49", cookies={"user": "8a4eb33a46b1405bb45291a37305c49a"})
+    print(task.text)
+    main_program(task.text.replace("\n", ""), i)
+
+if __name__ == "__main__":
+    authorize()
