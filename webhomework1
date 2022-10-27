@@ -84,7 +84,6 @@ def main_program(task: str):
         task = req.post(this_url, cookies=cookies, files=files)
     else:
         task = req.post(this_url, data=form_data, params=parameters, headers=headers, cookies=cookies)
-    print("==============================================")
     main_program(task.text.replace("\n", ""))
     
     
