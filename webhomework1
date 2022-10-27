@@ -1,7 +1,5 @@
 import requests as req
 import re
-from requests.adapters import HTTPAdapter
-from urllib3.util.retry import Retry
 
 token = str("8a4eb33a46b1405bb45291a37305c49a")
 main_url = str("http://178.154.226.49")
